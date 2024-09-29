@@ -1,0 +1,48 @@
+profiles:
+  - name: windows
+  - name: ubuntu
+    applications:
+      - name: RustToolchain
+        runAfter: []
+        verification:
+          - command: "rustup"
+            args: ["--version"]
+            expected: "rustup 1.27.1"
+        steps:
+          - name: DownloadRustInstaller
+            runAfter: []
+            type: Download
+            url: https://sh.rustup.rs
+            output: rust.sh
+          - name: Run installer
+            runAfter: ['RustToolchain.DownloadRustInstaller']
+            type: ExecuteDownload
+            artifact: RustToolchain.DownloadRustInstaller
+            args: ["-s -- -y"]
+      - name: golang
+        runAfter: []
+        verification:
+          - command: "go"
+            args: ["version"]
+            expected: "golang 1.27.1"
+        steps:
+          - name: DownloadGo
+            runAfter: []
+            type: Download
+            url: "https://go.dev/dl/go1.23.1.linux-amd64.tar.gz"
+            output: "go1.23.1.linux-amd64.tar.gz"
+          - name: RemoveExisting
+            runAfter: []
+            type: RemoveDir
+            directory: "/usr/local/go"
+          - name: InstallGo
+            runAfter: ["golang.DownloadGo", "golang.RemoveExisting"]
+            type: Untar
+            args: ["-C", "/usr/local", "-xzf"]
+            artifact: golang.DownloadGo
+          - name: UpdateProfileForGo
+            runAfter: ["golang.InstallGo"]
+            type: PathUpdate
+            path: "/usr/local/go/bin"
+
+
